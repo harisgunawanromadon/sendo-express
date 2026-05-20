@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { BranchItem } from "@/data/branch";
+import type { Branch } from "@/lib/api/types/branch";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { BranchActionCell } from "./branch-action-cell";
 
-export const columns = (onDataChange?: () => void): ColumnDef<BranchItem>[] => [
+export const columns = (onDataChange?: () => void): ColumnDef<Branch>[] => [
   {
     id: "number",
     header: ({ column }) => {
@@ -74,7 +74,7 @@ export const columns = (onDataChange?: () => void): ColumnDef<BranchItem>[] => [
   },
   {
     id: "action",
-    header: "Action",
+    header: "Aksi",
     cell: ({ row }) => {
       return (
         <BranchActionCell branch={row.original} onDataChange={onDataChange} />

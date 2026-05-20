@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   Form,
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
@@ -26,12 +25,9 @@ import type { Role } from "@/lib/api/types";
 import { useUpdateRole } from "@/hooks/use-role";
 import { usePermissionApi } from "@/hooks/use-permission";
 import toast from "react-hot-toast";
+import { PermissionGuard } from "@/components";
 
 const formSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Nama role harus diisi")
-    .max(50, "Nama role maksimal 50 karakter"),
   permissionIds: z.array(z.number()).min(1, "Pilih minimal 1 permission"),
 });
 
@@ -48,14 +44,12 @@ export function ActionCell({ role, onDataChange }: ActionCellProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: role.name,
       permissionIds: role.permissions.map((p) => p.id),
     },
   });
 
   useEffect(() => {
     form.reset({
-      name: role.name,
       permissionIds: role.permissions.map((p) => p.id),
     });
   }, [role, form]);
@@ -79,11 +73,13 @@ export function ActionCell({ role, onDataChange }: ActionCellProps) {
   return (
     <div className="flex gap-2">
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="darkGreen" size="sm">
-            Edit
-          </Button>
-        </DialogTrigger>
+        <PermissionGuard permission="permissions.manage">
+          <DialogTrigger asChild>
+            <Button variant="darkGreen" size="sm">
+              Edit
+            </Button>
+          </DialogTrigger>
+        </PermissionGuard>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Role</DialogTitle>
@@ -93,19 +89,10 @@ export function ActionCell({ role, onDataChange }: ActionCellProps) {
               onSubmit={form.handleSubmit(handleEdit)}
               className="space-y-4"
             >
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nama Role</FormLabel>
-                    <FormControl>
-                      <Input readOnly {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div>
+                <label className="text-sm font-medium">Nama Role</label>
+                <Input readOnly value={role.name} className="mt-1 bg-muted" />
+              </div>
               <FormField
                 control={form.control}
                 name="permissionIds"

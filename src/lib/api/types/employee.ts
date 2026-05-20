@@ -1,54 +1,63 @@
-// Employee related types
+import type { ApiMeta, Pagination } from "./index";
 
-export interface Employee {
-  id: number;
-  user_id: number;
-  branch_id: number;
-  created_at: string;
-  updated_at: string;
-}
+// Employee related types
 
 export interface EmployeeBranch {
   id: number;
-  user_id: number;
-  branch_id: number;
-  created_at: string;
-  updated_at: string;
+  user: {
+    id: number;
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    role: string;
+  };
+  branch: {
+    id: number;
+    name: string;
+  };
 }
 
 export interface CreateEmployeeBranchRequest {
-  user_id: number;
-  branch_id: number;
-}
-
-export interface EmployeeBranchResponse {
-  message: string;
-  data: EmployeeBranch[];
-}
-
-export interface SingleEmployeeBranchResponse {
-  message: string;
-  data: EmployeeBranch;
-}
-
-export interface EmployeeBranchRequest {
+  branchId: number;
   email: string;
   fullName: string;
-  address: string;
-  phone_number: string;
-  type: "courier" | "admin";
-  role_id: number;
-  branch_id: number;
+  phoneNumber: string;
+  roleId: number;
   password: string;
+  confirmPassword: string;
 }
 
 export interface UpdateEmployeeBranchRequest {
+  branchId?: number;
   email?: string;
-  name?: string;
-  address?: string;
-  phone_number?: string;
-  type?: "courier" | "admin";
-  role_id?: number;
-  branch_id?: number;
+  fullName?: string;
+  phoneNumber?: string;
+  roleId?: number;
   password?: string;
+  confirmPassword?: string;
+}
+
+export interface EmployeeBranchFilters {
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  branchName?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface EmployeeBranchResponse {
+  meta: ApiMeta;
+  data: EmployeeBranch[];
+  paging: Pagination;
+}
+
+export interface SingleEmployeeBranchResponse {
+  meta: ApiMeta;
+  data: EmployeeBranch;
+}
+
+export interface DeleteEmployeeBranchResponse {
+  meta: ApiMeta;
+  data: null;
 }

@@ -3,17 +3,22 @@ import { handleAxiosError } from "../../utils/error-handler";
 import type { AxiosErrorType } from "../../utils/api-error-types";
 import type {
   Branch,
+  BranchFilters,
   BranchResponse,
   CreateBranchRequest,
   SingleBranchResponse,
 } from "../types/branch";
 
 export const branchService = {
-  // get all branches
-  async getAll(): Promise<Branch[]> {
+  // get all branches with optional filters (name, page, limit)
+  async getAll(
+    filters?: BranchFilters,
+  ): Promise<{ data: Branch[]; paging: BranchResponse["paging"] }> {
     try {
-      const response = await apiClient.get<BranchResponse>("/api/branches");
-      return response.data.data;
+      const response = await apiClient.get<BranchResponse>("/api/branches", {
+        params: filters,
+      });
+      return { data: response.data.data, paging: response.data.paging };
     } catch (error) {
       const errorMessage = handleAxiosError(error as AxiosErrorType);
       throw new Error(errorMessage);

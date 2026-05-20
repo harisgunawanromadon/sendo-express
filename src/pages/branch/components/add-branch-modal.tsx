@@ -24,14 +24,12 @@ import toast from "react-hot-toast";
 import { AddSquare } from "iconsax-reactjs";
 import { branchSchema, type BranchFormData } from "@/lib/validations/branch";
 import { useCreateBranch } from "@/hooks/use-branch";
-import { PermissionGuard } from "@/components";
 
 interface AddBranchModalProps {
   onBranchAdded?: () => void;
 }
 
 export function AddBranchModal({ onBranchAdded }: AddBranchModalProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const createBranchMutation = useCreateBranch();
 
@@ -53,8 +51,6 @@ export function AddBranchModal({ onBranchAdded }: AddBranchModalProps) {
     } catch (error) {
       console.error("Error creating branch:", error);
       toast.error("Gagal menambahkan cabang. Silakan coba lagi.");
-    } finally {
-      setIsLoading(false);
     }
   }
 

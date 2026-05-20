@@ -144,18 +144,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return false;
   };
 
- const hasAccessToMasterMenu = (items: MenuItem[]) => {
-   const result = items.some((item) => {
-     if (item.permission) {
-       const has = hasPermission(item.permission);
-       console.log(`Permission ${item.permission}:`, has); // ← cek di console
-       return has;
-     }
-     return true;
-   });
-   console.log("hasAccessToMasterMenu:", result);
-   return result;
- };
+  const hasAccessToMasterMenu = (items: MenuItem[]) => {
+    return items.some((item) => {
+      if (item.permission) {
+        return hasPermission(item.permission);
+      }
+      return true;
+    });
+  };
   const renderMenuItem = (item: MenuItem) => {
     if (item.permission) {
       return (

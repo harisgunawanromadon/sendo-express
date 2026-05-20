@@ -94,7 +94,7 @@ function App() {
         <Route
           path="/employee"
           element={
-            <AuthGuard requiredAuth={true} permission="employees.read">
+            <AuthGuard requiredAuth={true} permission="employee.read">
               <EmployeePage />
             </AuthGuard>
           }
@@ -185,7 +185,7 @@ function App() {
         <Route
           path="/shipment-branch"
           element={
-            <AuthGuard requiredAuth={true} permission="shipment-branch.input">
+            <AuthGuard requiredAuth={true} permission="shipment-branch.read">
               <ShipmentBranchPage />
             </AuthGuard>
           }

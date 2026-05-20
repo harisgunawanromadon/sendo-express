@@ -22,7 +22,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import type { UserAddressItem } from "@/data/user-addresses";
+import type { UserAddress } from "@/lib/api/types/user-address";
 import { userAddresses } from "@/data/user-addresses";
 import {
 	deliveryFormSchema,
@@ -31,7 +31,7 @@ import {
 
 export function DeliveryForm() {
 	const [userAddressesState, setUserAddressesState] = useState<
-		UserAddressItem[]
+		UserAddress[]
 	>([]);
 	const [loading, setLoading] = useState(false);
 	const [addressesLoading, setAddressesLoading] = useState(true);

@@ -2,21 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "./use-auth";
 import { roleService } from "@/lib/api/services/role";
 import { permissionService } from "@/lib/api/services/permission";
-import type { Permissions, Role } from "@/lib/api/types/role";
+import type { Permissions } from "@/lib/api/types/role";
 
 export const usePermission = () => {
   const { user } = useAuth();
 
-  const { data: roles, isLoading } = useQuery({
-    queryKey: ["roles"],
-    queryFn: () => roleService.getRoles(),
+  // Ambil permissions user berdasarkan role key
+  const { data: userRole, isLoading } = useQuery({
+    queryKey: ["roles", "by-key", user?.role],
+    queryFn: () => roleService.getRoleByKey(user!.role),
     enabled: !!user,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
+    retry: false,
   });
 
-  // Cari permissions berdasarkan role key dari login (misal "super-admin", "customer")
-  const userPermissions: Permissions[] =
-    roles?.find((r: Role) => r.key === user?.role)?.permissions ?? [];
+  const userPermissions: Permissions[] = userRole?.permissions ?? [];
 
   const hasPermission = (permissionKey: string): boolean => {
     if (!user) return false;
@@ -37,6 +37,7 @@ export const usePermission = () => {
     hasAnyPermission,
     hasAllPermission,
     isLoading,
+    userPermissions,
   };
 };
 
@@ -44,6 +45,7 @@ export const usePermissionApi = () => {
   return useQuery({
     queryKey: ["permissions"],
     queryFn: () => permissionService.getPermissions(),
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
   });
 };
+
