@@ -17,9 +17,11 @@ const ROLE_KEY_TO_ID: Record<string, number> = {
 };
 
 export const roleService = {
-  async getRoles(): Promise<Role[]> {
+  async getRoles(name: string): Promise<Role[]> {
     try {
-      const response = await apiClient.get<RoleResponse>("/api/roles");
+      const response = await apiClient.get<RoleResponse>("/api/roles", {
+        params: { name },
+      });
       return response.data.data;
     } catch (error) {
       const errorMessage = handleAxiosError(error as AxiosErrorType);

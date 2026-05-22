@@ -3,124 +3,162 @@ import { DataTable } from "./components/datatable";
 import { columns } from "./components/datatable/columns";
 import { AddEmployeeModal } from "./components/add-employee-modal";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useMeta, META_DATA } from "@/hooks/use-meta";
 import { useEmployees } from "@/hooks/use-employee";
 import { PermissionGuard } from "@/components";
 import { PaginationControl } from "@/components/ui/pagination-control";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useSearchParams } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { EmployeeBranchFilters } from "@/lib/api/types/employee";
+import { Loader2 } from "lucide-react";
 
 const LIMIT = 5;
+
+type FilterField = "name" | "email" | "phoneNumber" | "branchName";
+
+const FILTER_OPTIONS: { value: FilterField; label: string }[] = [
+  { value: "name", label: "Nama" },
+  { value: "email", label: "Email" },
+  { value: "phoneNumber", label: "No. Telepon" },
+  { value: "branchName", label: "Cabang" },
+];
 
 export default function EmployeePage() {
   useMeta(META_DATA.employee);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Baca state dari URL params
-  const page = Number(searchParams.get("page") ?? 1);
-  const nameParam = searchParams.get("name") ?? "";
+  const [filterField, setFilterField] = useState<FilterField>(
+    (searchParams.get("filter") as FilterField) ?? "name",
+  );
 
-  // Controlled input state (debounced sebelum masuk URL)
-  const [inputName, setInputName] = useState(nameParam);
-  const debouncedName = useDebounce(inputName, 400);
+  const [inputValue, setInputValue] = useState(
+    searchParams.get(filterField) ?? "",
+  );
+
+  const debouncedSearch = useDebounce(inputValue, 500);
+
+  useEffect(() => {
+    const params: Record<string, string> = {
+      page: "1",
+      limit: String(LIMIT),
+      filter: filterField,
+    };
+
+    if (debouncedSearch) {
+      params[filterField] = debouncedSearch;
+    }
+
+    setSearchParams(params, { replace: true });
+  }, [debouncedSearch, filterField, setSearchParams]);
+
+  const handleFilterFieldChange = (value: FilterField) => {
+    setFilterField(value);
+    setInputValue("");
+  };
+
+  const currentPage = Number(searchParams.get("page") ?? 1);
+
+  const handlePageChange = (page: number) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("page", String(page));
+        return next;
+      },
+      { replace: true },
+    );
+  };
+
+  const filters: EmployeeBranchFilters = {
+    [filterField]: debouncedSearch || undefined,
+    page: currentPage,
+    limit: LIMIT,
+  };
 
   const {
     data,
     error: employeeError,
     isLoading: isLoadingEmployees,
-  } = useEmployees({
-    name: debouncedName || undefined,
-    page,
-    limit: LIMIT,
-  });
+  } = useEmployees(filters);
 
-  const employees = data?.data ?? [];
   const paging = data?.paging;
-
-  const handleSearch = (value: string) => {
-    setInputName(value);
-    // Update URL params: reset page ke 1, update name
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (value) {
-        next.set("name", value);
-      } else {
-        next.delete("name");
-      }
-      next.set("page", "1");
-      return next;
-    });
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set("page", String(newPage));
-      return next;
-    });
-  };
-
-  if (isLoadingEmployees && !data) {
-    return (
-      <Page title="Kelola Karyawan 👥💼">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-gray-600">Memuat data karyawan...</p>
-          </div>
-        </div>
-      </Page>
-    );
-  }
 
   if (employeeError) {
     return (
       <Page title="Kelola Karyawan 👥💼">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <h2 className="text-red-600 text-2xl font-semibold mb-4">
-              Gagal memuat data karyawan
-            </h2>
-            <p className="text-gray-600">{employeeError.message}</p>
-          </div>
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <h2 className="text-red-600 text-2xl font-semibold">
+            Gagal memuat data karyawan
+          </h2>
+          <p className="text-gray-600">{employeeError.message}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Muat Ulang
+          </button>
         </div>
       </Page>
     );
   }
 
+  const activePlaceholder =
+    FILTER_OPTIONS.find((o) => o.value === filterField)?.label ?? "Nama";
+
   return (
-    <>
-      <Page
-        title="Kelola Karyawan 👥💼"
-        action={<AddEmployeeModal />}
-      >
+    <Page title="Kelola Karyawan 👥💼" action={<AddEmployeeModal />}>
+      <div className="flex gap-2 mb-4 w-full max-w-md">
+        <Select value={filterField} onValueChange={handleFilterFieldChange}>
+          <SelectTrigger className="w-40 bg-white shrink-0">
+            <SelectValue placeholder="Filter" />
+          </SelectTrigger>
+          <SelectContent>
+            {FILTER_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <Input
           type="text"
-          placeholder="Cari Karyawan berdasarkan Nama"
-          className="mb-4 w-full max-w-md bg-white"
-          value={inputName}
-          onChange={(e) => handleSearch(e.target.value)}
+          placeholder={`Cari berdasarkan ${activePlaceholder}`}
+          className="bg-white flex-1"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
         />
-        <PermissionGuard
-          permission="employee.read"
-          fallback={
-            <div className="rounded-2xl bg-white p-6 text-sm text-gray-600">
-              Anda tidak memiliki izin untuk melihat data karyawan.
-            </div>
-          }
-        >
+      </div>
+
+      {isLoadingEmployees ? (
+        <div className="flex flex-col items-center justify-center h-64 gap-3 text-muted-foreground">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm">Memuat data karyawan...</p>
+        </div>
+      ) : (
+        <PermissionGuard permission="employee.read">
           <DataTable
-            data={employees}
+            data={data?.data ?? []}
             columns={columns()}
             title="Daftar Karyawan"
           />
           {paging && paging.totalPages > 1 && (
-            <PaginationControl paging={paging} onPageChange={handlePageChange} />
+            <PaginationControl
+              paging={paging}
+              onPageChange={handlePageChange}
+            />
           )}
         </PermissionGuard>
-      </Page>
-    </>
+      )}
+    </Page>
   );
 }

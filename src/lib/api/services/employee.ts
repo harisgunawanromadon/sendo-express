@@ -15,13 +15,13 @@ export const employeeService = {
   // get all employess branches
   async getAllEmployeeBranch(
     filters?: EmployeeBranchFilters,
-  ): Promise<{ data: EmployeeBranch[]; paging: EmployeeBranchResponse["paging"] }> {
+  ): Promise<EmployeeBranchResponse> {
     try {
       const response = await apiClient.get<EmployeeBranchResponse>(
         "/api/employee-branches",
         { params: filters },
       );
-      return { data: response.data.data, paging: response.data.paging };
+      return response.data;
     } catch (error) {
       const errorMessage = handleAxiosError(error as AxiosErrorType);
       throw new Error(errorMessage);
@@ -62,7 +62,9 @@ export const employeeService = {
   },
 
   // get single employee branch
-  async getEmployeeBranchById(employeeBranchId: number): Promise<EmployeeBranch> {
+  async getEmployeeBranchById(
+    employeeBranchId: number,
+  ): Promise<EmployeeBranch> {
     try {
       const response = await apiClient.get<SingleEmployeeBranchResponse>(
         `/api/employee-branches/${employeeBranchId}`,

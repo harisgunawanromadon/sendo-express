@@ -2,56 +2,45 @@ import { Page } from "@/components/ui/page";
 import { DataTable } from "./components/datatable";
 import { createColumns } from "./components/datatable/columns";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
 import { useRoles } from "@/hooks/use-role";
-import { Skeleton, PermissionGuard } from "@/components";
+import { PermissionGuard } from "@/components";
 import { useMeta, META_DATA } from "@/hooks/use-meta";
+import { useSearchParams } from "react-router-dom";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 export default function RolePage() {
-  // Use custom meta hook
   useMeta(META_DATA.role);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [inputValue, setInputValue] = useState(searchParams.get("name") ?? "");
+  const debouncedSearch = useDebounce(inputValue, 500);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  useEffect(() => {
+    setSearchParams(debouncedSearch ? { name: debouncedSearch } : {}, {
+      replace: true,
+    });
+  }, [debouncedSearch, setSearchParams]);
 
-  const { data: roles, isLoading: isLoadingRoles, error: rolesError, refetch } = useRoles();
-
-  const filteredRoles =
-    roles?.filter(
-      (role) =>
-        role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        role.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        role.permissions.some(
-          (permission) =>
-            permission.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            permission.key.toLowerCase().includes(searchTerm.toLowerCase()),
-        ),
-    ) || [];
+  const {
+    data: roles,
+    isLoading: isLoadingRoles,
+    isFetching: isFetchingRoles,
+    error: rolesError,
+    refetch,
+  } = useRoles(debouncedSearch);
 
   const columns = createColumns(() => refetch());
-
-  if (isLoadingRoles) {
-    return (
-      <Page title="Kelola Role 🔐👨‍💼">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-gray-600">Memuat data role...</p>
-          </div>
-        </div>
-      </Page>
-    );
-  }
+  const isLoading = isLoadingRoles || isFetchingRoles;
 
   if (rolesError) {
     return (
       <Page title="Kelola Role 🔐👨‍💼">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <h2 className="text-red-600 text-2xl font-semibold mb-4">
-              Gagal memuat data role
-            </h2>
-            <p className="text-gray-600">{rolesError.message}</p>
-          </div>
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <h2 className="text-red-600 text-2xl font-semibold">
+            Gagal memuat data role
+          </h2>
+          <p className="text-gray-600">{rolesError.message}</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -69,30 +58,18 @@ export default function RolePage() {
         type="text"
         placeholder="Cari Role Berdasarkan Nama Role"
         className="mb-4 w-full max-w-md bg-white"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
       />
-      {isLoadingRoles ? (
-        <div className="space-y-4">
-          <Skeleton className="w-full h-12" />
-          <Skeleton className="w-full h-12" />
-          <Skeleton className="w-full h-12" />
-          <Skeleton className="w-full h-12" />
+
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center h-64 gap-3 text-muted-foreground">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm">Memuat data role...</p>
         </div>
       ) : (
-        <PermissionGuard
-          permission="permissions.read"
-          fallback={
-            <div className="rounded-2xl bg-white p-6 text-sm text-gray-600">
-              Anda tidak memiliki izin untuk melihat daftar role.
-            </div>
-          }
-        >
-          <DataTable
-            data={filteredRoles}
-            columns={columns}
-            title="Daftar Role"
-          />
+        <PermissionGuard permission="permissions.read">
+          <DataTable data={roles ?? []} columns={columns} title="Daftar Role" />
         </PermissionGuard>
       )}
     </Page>

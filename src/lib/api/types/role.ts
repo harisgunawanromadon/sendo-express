@@ -3,7 +3,7 @@
 export interface ApiMeta {
   message: string;
   statusCode: number;
-  success: boolean;
+  success: boolean; 
 }
 
 export interface Permissions {
@@ -12,13 +12,6 @@ export interface Permissions {
   key: string;
   resource: string;
 }
-
-// Tidak Terpakai
-// export interface PermissionResponse {
-//   meta: ApiMeta;
-//   data: Permissions[];
-// }
-
 export interface Role {
   id: number;
   name: string;

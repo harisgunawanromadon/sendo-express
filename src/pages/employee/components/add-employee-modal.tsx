@@ -35,7 +35,6 @@ import {
 import { useCreateEmployee } from "@/hooks/use-employee";
 import { useBranches } from "@/hooks/use-branch";
 
-
 interface AddEmployeeModalProps {
   onEmployeeAdded?: () => void;
 }

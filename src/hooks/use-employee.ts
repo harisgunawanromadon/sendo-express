@@ -5,6 +5,7 @@ import type {
   CreateEmployeeBranchRequest,
   UpdateEmployeeBranchRequest,
   EmployeeBranchFilters,
+  EmployeeBranchResponse,
 } from "../lib/api/types/employee";
 
 // query keys
@@ -19,10 +20,10 @@ export const employeeKeys = {
 
 // get all employee branches
 export const useEmployees = (filters?: EmployeeBranchFilters) => {
-  return useQuery({
+  return useQuery<EmployeeBranchResponse>({
     queryKey: employeeKeys.list(filters),
     queryFn: () => employeeService.getAllEmployeeBranch(filters),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     placeholderData: (prev) => prev,
   });
 };

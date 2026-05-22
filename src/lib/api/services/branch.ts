@@ -10,7 +10,6 @@ import type {
 } from "../types/branch";
 
 export const branchService = {
-  // get all branches with optional filters (name, page, limit)
   async getAll(
     filters?: BranchFilters,
   ): Promise<{ data: Branch[]; paging: BranchResponse["paging"] }> {

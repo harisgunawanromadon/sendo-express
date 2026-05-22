@@ -7,7 +7,8 @@ import { PermissionGuard } from "@/components";
 import { PaginationControl } from "@/components/ui/pagination-control";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useSearchParams } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 const LIMIT = 5;
 
@@ -16,18 +17,33 @@ export default function BranchPage() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Baca state dari URL params
-  const page = Number(searchParams.get("page") ?? 1);
+  const page = Number(searchParams.get("page") || 1);
   const nameParam = searchParams.get("name") ?? "";
 
-  // Controlled input state (debounced sebelum masuk URL)
   const [inputName, setInputName] = useState(nameParam);
   const debouncedName = useDebounce(inputName, 400);
+
+  useEffect(() => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (debouncedName) {
+          next.set("name", debouncedName);
+        } else {
+          next.delete("name");
+        }
+        next.set("page", "1");
+        return next;
+      },
+      { replace: true },
+    );
+  }, [debouncedName]);
 
   const {
     data,
     error,
     isLoading: isLoadingBranches,
+    isFetching: isFetchingBranches,
   } = useBranches({
     name: debouncedName || undefined,
     page,
@@ -37,41 +53,18 @@ export default function BranchPage() {
   const branches = data?.data ?? [];
   const paging = data?.paging;
 
-  const handleSearch = (value: string) => {
-    setInputName(value);
-    // Update URL params: reset page ke 1, update name
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (value) {
-        next.set("name", value);
-      } else {
-        next.delete("name");
-      }
-      next.set("page", "1");
-      return next;
-    });
-  };
-
   const handlePageChange = (newPage: number) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set("page", String(newPage));
-      return next;
-    });
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("page", String(newPage));
+        return next;
+      },
+      { replace: true },
+    );
   };
 
-  if (isLoadingBranches && !data) {
-    return (
-      <Page title="Daftar Cabang 🏢">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-gray-600">Memuat data cabang...</p>
-          </div>
-        </div>
-      </Page>
-    );
-  }
+  const isLoading = isLoadingBranches || isFetchingBranches;
 
   if (error) {
     return (
@@ -102,25 +95,24 @@ export default function BranchPage() {
         placeholder="Cari Cabang berdasarkan Nama"
         className="mb-4 w-full max-w-sm bg-white"
         value={inputName}
-        onChange={(e) => handleSearch(e.target.value)}
+        onChange={(e) => setInputName(e.target.value)}
       />
-      <PermissionGuard
-        permission="branches.read"
-        fallback={
-          <div className="rounded-2xl bg-white p-6 text-sm text-gray-600">
-            Anda tidak memiliki izin untuk melihat data cabang.
-          </div>
-        }
-      >
-        <DataTable
-          data={branches}
-          columns={columns()}
-          title="Semua Cabang"
-        />
-        {paging && paging.totalPages > 1 && (
-          <PaginationControl paging={paging} onPageChange={handlePageChange} />
-        )}
-      </PermissionGuard>
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center h-64 gap-3 text-muted-foreground">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm">Memuat data cabang...</p>
+        </div>
+      ) : (
+        <PermissionGuard permission="branches.read">
+          <DataTable data={branches} columns={columns()} title="Semua Cabang" />
+          {paging && paging.totalPages > 1 && (
+            <PaginationControl
+              paging={paging}
+              onPageChange={handlePageChange}
+            />
+          )}
+        </PermissionGuard>
+      )}
     </Page>
   );
 }
