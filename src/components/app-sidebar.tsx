@@ -34,7 +34,7 @@ import {
 } from "iconsax-reactjs";
 import { Link, useLocation } from "react-router";
 import { ProCard } from "./pro-card";
-import { ChevronDown, Loader2 } from "lucide-react"; // Tambahkan Loader2
+import { ChevronDown } from "lucide-react";
 import { usePermission } from "../hooks/use-permission";
 import { PermissionGuard } from "./permission-guard";
 
@@ -51,27 +51,21 @@ const data = {
     {
       title: "Main Menu",
       items: [
+        { title: "Dashboard", url: "/dashboard", icon: Chart2 },
+        { title: "Alamat Saya", url: "/user-addresses", icon: Location },
+        { title: "Profile", url: "/profile", icon: User },
+        { title: "Lacak Paket", url: "/track-package", icon: Routing },
         {
-          title: "Dashboard",
-          url: "/dashboard",
-          icon: Chart2,
+          title: "Daftar Pengiriman",
+          url: "/delivery",
+          icon: ClipboardTick,
+          permission: "delivery.read",
         },
         {
           title: "Kirim Paket",
           url: "/send-package",
           icon: BoxTick,
           permission: "shipments.create",
-        },
-        {
-          title: "Lacak Paket",
-          url: "/track-package",
-          icon: Routing,
-        },
-        {
-          title: "Daftar Pengiriman",
-          url: "/delivery",
-          icon: ClipboardTick,
-          permission: "delivery.read",
         },
         {
           title: "Scan Paket",
@@ -84,16 +78,6 @@ const data = {
           url: "/history",
           icon: ClipboardClose,
           permission: "history.read",
-        },
-        {
-          title: "Alamat Saya",
-          url: "/user-addresses",
-          icon: Location,
-        },
-        {
-          title: "Profile",
-          url: "/profile",
-          icon: User,
         },
       ],
     },
@@ -127,8 +111,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
-  // Tambahkan isLoading di sini
-  const { hasPermission, isLoading } = usePermission();
+  const { hasPermission } = usePermission();
 
   const isActive = (url: string) => {
     if (location.pathname.startsWith(url)) {
@@ -141,8 +124,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   const hasAccessToMasterMenu = (items: MenuItem[]) => {
-    if (isLoading) return true;
-
     return items.some((item) => {
       if (item.permission) {
         return hasPermission(item.permission);
@@ -247,13 +228,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <span className="font-bold text-xl">SendoExpress</span>
         </div>
       </SidebarHeader>
-      <SidebarContent className="p-6 pt-0 relative">
-        {isLoading && (
-          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-10">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        )}
-
+      <SidebarContent className="p-6 pt-0">
         {data.navMain.map((item) => (
           <SidebarGroup key={item.title}>
             <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
