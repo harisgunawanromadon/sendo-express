@@ -6,6 +6,8 @@ import { usePermission } from "../hooks/use-permission";
 interface AuthGuardProps {
   children: React.ReactNode;
   requiredAuth: boolean;
+  role?: string;
+  roles?: string[];
   permissions?: string[];
   permission?: string;
   redirectTo?: string;
@@ -16,9 +18,11 @@ export const AuthGuard = ({
   requiredAuth = true,
   permissions,
   permission,
+  role,
+  roles,
   redirectTo = "/dashboard",
 }: AuthGuardProps) => {
-  const { isAuthenticated, isLoadingUser } = useAuth();
+  const { isAuthenticated, isLoadingUser, user } = useAuth();
   const { hasPermission, hasAnyPermission } = usePermission();
   const navigate = useNavigate();
 
@@ -28,13 +32,21 @@ export const AuthGuard = ({
         navigate("/auth/login");
       } else if (!requiredAuth && isAuthenticated) {
         navigate("/dashboard");
-      } else if (isAuthenticated && (permissions || permission)) {
-        let hasAccess = false;
+      } else if (isAuthenticated) {
+        let hasAccess = true;
 
-        if (permission) {
-          hasAccess = hasPermission(permission);
-        } else if (permissions) {
-          hasAccess = hasAnyPermission(permissions);
+        if (role || roles) {
+          const userRole = typeof user?.role === "string" ? user.role : "";
+          const allowedRoles = roles || (role ? [role] : []);
+          hasAccess = allowedRoles.includes(userRole);
+        }
+
+        if (hasAccess && (permission || permissions)) {
+          if (permission) {
+            hasAccess = hasPermission(permission);
+          } else if (permissions) {
+            hasAccess = hasAnyPermission(permissions);
+          }
         }
 
         if (!hasAccess) {
@@ -49,6 +61,9 @@ export const AuthGuard = ({
     navigate,
     permissions,
     permission,
+    role,
+    roles,
+    user,
     redirectTo,
     hasPermission,
     hasAnyPermission,
@@ -62,13 +77,21 @@ export const AuthGuard = ({
     return null;
   }
 
-  if (isAuthenticated && (permissions || permission)) {
-    let hasAccess = false;
+  if (isAuthenticated) {
+    let hasAccess = true;
 
-    if (permission) {
-      hasAccess = hasPermission(permission);
-    } else if (permissions) {
-      hasAccess = hasAnyPermission(permissions);
+    if (role || roles) {
+      const userRole = typeof user?.role === "string" ? user.role : "";
+      const allowedRoles = roles || (role ? [role] : []);
+      hasAccess = allowedRoles.includes(userRole);
+    }
+
+    if (hasAccess && (permission || permissions)) {
+      if (permission) {
+        hasAccess = hasPermission(permission);
+      } else if (permissions) {
+        hasAccess = hasAnyPermission(permissions);
+      }
     }
 
     if (!hasAccess) {

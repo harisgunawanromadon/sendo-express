@@ -5,6 +5,8 @@ import { Skeleton } from "./ui/skeleton";
 interface PermissionGuardProps {
   permission?: string;
   permissions?: string[];
+  role?: string;
+  roles?: string[];
   children: ReactNode;
   fallback?: ReactNode;
 }
@@ -12,28 +14,37 @@ interface PermissionGuardProps {
 export function PermissionGuard({
   permission,
   permissions,
+  role,
+  roles,
   children,
   fallback = null,
 }: PermissionGuardProps) {
-  const { hasPermission, hasAnyPermission, isLoading } = usePermission();
+  const { hasPermission, hasAnyPermission, isLoading, user } = usePermission();
 
-  if (isLoading) {
+  if (isLoading && (permission || permissions)) {
     return <Skeleton className="h-10" />;
   }
 
-  // 1. Tidak ada permission
-  if (!permission && !permissions) {
-    return <>{children}</>;
+  if (role || roles) {
+    const userRole = typeof user?.role === "string" ? user.role : "";
+    const allowedRoles = roles || (role ? [role] : []);
+    const hasRole = allowedRoles.includes(userRole);
+
+    if (!hasRole) return <>{fallback}</>;
+    
+    if (!permission && !permissions) return <>{children}</>;
   }
 
-  // 2. Cek single permission
   if (permission) {
     return hasPermission(permission) ? <>{children}</> : <>{fallback}</>;
   }
 
-  // 3. Cek multiple permissions
   if (permissions) {
     return hasAnyPermission(permissions) ? <>{children}</> : <>{fallback}</>;
+  }
+
+  if (!permission && !permissions && !role && !roles) {
+    return <>{children}</>;
   }
 
   return <>{fallback}</>;

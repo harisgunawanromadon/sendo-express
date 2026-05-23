@@ -42,7 +42,8 @@ type MenuItem = {
   title: string;
   url: string;
   icon: React.ComponentType<React.ComponentProps<typeof Chart2>>;
-  permission?: string;
+  role?: string;
+  roles?: string[];
 };
 
 const data = {
@@ -52,32 +53,32 @@ const data = {
       title: "Main Menu",
       items: [
         { title: "Dashboard", url: "/dashboard", icon: Chart2 },
-        { title: "Alamat Saya", url: "/user-addresses", icon: Location },
+        { title: "Alamat Saya", url: "/user-addresses", icon: Location, role: "customer" },
         { title: "Profile", url: "/profile", icon: User },
         { title: "Lacak Paket", url: "/track-package", icon: Routing },
         {
           title: "Daftar Pengiriman",
           url: "/delivery",
           icon: ClipboardTick,
-          permission: "delivery.read",
+          roles: ["super-admin", "admin-branch", "courier"],
         },
         {
           title: "Kirim Paket",
           url: "/send-package",
           icon: BoxTick,
-          permission: "shipments.create",
+          role: "customer",
         },
         {
           title: "Scan Paket",
           url: "/shipment-branch",
           icon: Truck,
-          permission: "shipment-branch.read",
+          roles: ["admin-branch", "super-admin"],
         },
         {
           title: "History",
           url: "/history",
           icon: ClipboardClose,
-          permission: "history.read",
+          role: "customer",
         },
       ],
     },
@@ -90,19 +91,19 @@ const data = {
           title: "Cabang",
           url: "/branch",
           icon: Buildings,
-          permission: "branches.read",
+          role: "super-admin",
         },
         {
           title: "Karyawan",
           url: "/employee",
           icon: UserTag,
-          permission: "employee.read",
+          roles: ["super-admin", "admin-branch"],
         },
         {
           title: "Role",
           url: "/role",
           icon: Shield,
-          permission: "permissions.read",
+          role: "super-admin",
         },
       ],
     },
@@ -111,7 +112,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
-  const { hasPermission } = usePermission();
+  const { user } = usePermission();
 
   const isActive = (url: string) => {
     if (location.pathname.startsWith(url)) {
@@ -124,18 +125,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   const hasAccessToMasterMenu = (items: MenuItem[]) => {
+    const userRole = typeof user?.role === "string" ? user.role : "";
+
     return items.some((item) => {
-      if (item.permission) {
-        return hasPermission(item.permission);
+      if (item.roles || item.role) {
+        const allowedRoles = item.roles || (item.role ? [item.role] : []);
+        return allowedRoles.includes(userRole);
       }
       return true;
     });
   };
 
   const renderMenuItem = (item: MenuItem) => {
-    if (item.permission) {
+    if (item.role || item.roles) {
       return (
-        <PermissionGuard key={item.title} permission={item.permission}>
+        <PermissionGuard
+          key={item.title}
+          role={item.role}
+          roles={item.roles}
+        >
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
@@ -175,9 +183,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   const renderMasterMenuItem = (item: MenuItem) => {
-    if (item.permission) {
+    if (item.role || item.roles) {
       return (
-        <PermissionGuard key={item.title} permission={item.permission}>
+        <PermissionGuard
+          key={item.title}
+          role={item.role}
+          roles={item.roles}
+        >
           <SidebarMenuSubItem>
             <SidebarMenuButton
               asChild

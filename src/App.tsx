@@ -74,7 +74,7 @@ function App() {
         <Route
           path="/branch"
           element={
-            <AuthGuard requiredAuth={true} permission="branches.read">
+            <AuthGuard requiredAuth={true} role="super-admin">
               <BranchPage />
             </AuthGuard>
           }
@@ -84,7 +84,7 @@ function App() {
         <Route
           path="/role"
           element={
-            <AuthGuard requiredAuth={true} permission="permissions.read">
+            <AuthGuard requiredAuth={true} role="super-admin">
               <RolePage />
             </AuthGuard>
           }
@@ -94,7 +94,7 @@ function App() {
         <Route
           path="/employee"
           element={
-            <AuthGuard requiredAuth={true} permission="employee.read">
+            <AuthGuard requiredAuth={true} roles={["super-admin", "admin-branch"]}>
               <EmployeePage />
             </AuthGuard>
           }
@@ -112,7 +112,7 @@ function App() {
         <Route
           path="/delivery"
           element={
-            <AuthGuard requiredAuth={true} permission="delivery.read">
+            <AuthGuard requiredAuth={true} roles={["super-admin", "admin-branch", "courier"]}>
               <DeliveryPage />
             </AuthGuard>
           }
@@ -122,7 +122,7 @@ function App() {
         <Route
           path="/send-package"
           element={
-            <AuthGuard requiredAuth={true} permission="shipments.create">
+            <AuthGuard requiredAuth={true} role="customer">
               <SendPackagePage />
             </AuthGuard>
           }
@@ -130,7 +130,7 @@ function App() {
         <Route
           path="/send-package/no-address"
           element={
-            <AuthGuard requiredAuth={true} permission="shipments.create">
+            <AuthGuard requiredAuth={true} role="customer">
               <NoAddressPage />
             </AuthGuard>
           }
@@ -138,7 +138,7 @@ function App() {
         <Route
           path="/send-package/add"
           element={
-            <AuthGuard requiredAuth={true} permission="shipments.create">
+            <AuthGuard requiredAuth={true} role="customer">
               <AddSendPackagePage />
             </AuthGuard>
           }
@@ -164,7 +164,7 @@ function App() {
         <Route
           path="/history"
           element={
-            <AuthGuard requiredAuth={true} permission="history.read">
+            <AuthGuard requiredAuth={true}>
               <HistoryPage />
             </AuthGuard>
           }
@@ -172,7 +172,7 @@ function App() {
         <Route
           path="/history/detail/:id"
           element={
-            <AuthGuard requiredAuth={true} permission="history.read">
+            <AuthGuard requiredAuth={true}>
               <DetailHistoryPage />
             </AuthGuard>
           }
@@ -185,7 +185,7 @@ function App() {
         <Route
           path="/shipment-branch"
           element={
-            <AuthGuard requiredAuth={true} permission="shipment-branch.read">
+            <AuthGuard requiredAuth={true} roles={["admin-branch", "courier"]}>
               <ShipmentBranchPage />
             </AuthGuard>
           }

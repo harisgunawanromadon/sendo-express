@@ -28,7 +28,7 @@ export const usePermission = () => {
   })();
 
   const hasPermission = (permissionKey: string): boolean => {
-    if (!user || isLoading) return false;
+    if (!user) return false;
     return userPermissions.some((p) => p.key === permissionKey);
   };
 
@@ -41,6 +41,7 @@ export const usePermission = () => {
   };
 
   return {
+    user,
     hasPermission,
     hasAnyPermission,
     hasAllPermission,
