@@ -62,6 +62,7 @@ export const useUpdateUserAddress = () => {
       data: UpdateUserAddressRequest;
     }) => userAddressService.updateUserAddress(id, data),
     onSuccess: (_, { id }) => {
+      toast.success("Alamat berhasil diperbarui!");
       queryClient.invalidateQueries({ queryKey: userAddressKeys.lists() });
       queryClient.invalidateQueries({ queryKey: userAddressKeys.detail(id) });
     },

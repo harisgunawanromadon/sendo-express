@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import toast from "react-hot-toast";
 import { Upload, MapPin, Slash } from "lucide-react";
-import { useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +23,7 @@ import {
 import { useMeta, META_DATA } from "@/hooks/use-meta";
 import { Textarea } from "@/components/ui/textarea";
 import { useUserAddress, useUpdateUserAddress } from "@/hooks/use-user-address";
+import { useUploadMedia, useRemoveMedia } from "@/hooks/use-media";
 
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
@@ -52,18 +52,26 @@ function PageShell({ children }: { children: React.ReactNode }) {
 export default function EditUserAddressPage() {
   useMeta(META_DATA["user-addresses-edit"]);
   const navigate = useNavigate();
-
   const { id: addressId } = useParams();
-  const userAddressId = addressId ? parseInt(addressId) : 0;
+
+  const userAddressId =
+    addressId && !isNaN(parseInt(addressId)) ? parseInt(addressId) : null;
 
   const {
     data: userAddress,
     isLoading: fetchLoading,
     error: fetchError,
-  } = useUserAddress(userAddressId);
+  } = useUserAddress(userAddressId ?? 0);
 
   const updateUserAddressMutation = useUpdateUserAddress();
+  const uploadMediaMutation = useUploadMedia();
+  const removeMediaMutation = useRemoveMedia();
+
   const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState<string | null>(null);
+  const [uploadedPublicId, setUploadedPublicId] = useState<string | null>(null);
+  const [originalPhotoUrl, setOriginalPhotoUrl] = useState<string>("");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -78,16 +86,16 @@ export default function EditUserAddressPage() {
       address: "",
       tag: "",
       label: "",
-      photo: undefined,
+      photo: "",
     },
   });
 
   useEffect(() => {
-    if (!addressId || isNaN(userAddressId)) {
+    if (!userAddressId) {
       toast.error("ID alamat tidak valid");
       navigate("/user-addresses");
     }
-  }, [addressId, userAddressId, navigate]);
+  }, [userAddressId, navigate]);
 
   useEffect(() => {
     if (fetchError) {
@@ -100,53 +108,110 @@ export default function EditUserAddressPage() {
     if (userAddress) {
       reset({
         address: userAddress.address,
-        tag: userAddress.tag,
-        label: userAddress.label,
-        photo: userAddress.photo ?? undefined,
+        tag: userAddress.tag ?? "",
+        label: userAddress.label ?? "",
+        photo: "",
       });
-      if (userAddress.photo) {
-        setPhotoPreview(userAddress.photo);
-      }
+      const existingPhoto = userAddress.photo ?? "";
+      setPhotoPreview(existingPhoto);
+      setOriginalPhotoUrl(existingPhoto);
     }
   }, [userAddress, reset]);
 
-  const handlePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const resetPhotoToOriginal = () => {
+    setPhotoPreview(originalPhotoUrl);
+    setUploadedPhotoUrl(null);
+    setUploadedPublicId(null);
+    setValue("photo", "");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handlePhotoSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64 = e.target?.result as string;
-        setPhotoPreview(base64);
-        setValue("photo", base64);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("File yang dipilih harus berupa gambar.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran gambar tidak boleh lebih dari 5MB.");
+      return;
+    }
+
+    // Jika sebelumnya sudah upload foto baru (bukan foto original), hapus dulu
+    if (uploadedPublicId) {
+      try {
+        await removeMediaMutation.mutateAsync(uploadedPublicId);
+        setUploadedPublicId(null);
+        setUploadedPhotoUrl(null);
+      } catch {
+        // lanjutkan meski gagal hapus
+      }
+    }
+
+    // Preview lokal segera
+    const reader = new FileReader();
+    reader.onload = (e) => setPhotoPreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+
+    try {
+      const result = await uploadMediaMutation.mutateAsync(file);
+      setUploadedPhotoUrl(result.fileUrl);
+      setUploadedPublicId(result.publicId);
+      setValue("photo", result.fileUrl);
+      toast.success("Gambar berhasil diunggah!");
+    } catch {
+      resetPhotoToOriginal();
     }
   };
 
-  const removePhoto = () => {
-    setPhotoPreview("");
-    setValue("photo", undefined);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+  const handleRemovePhoto = () => {
+    const isUploading = uploadMediaMutation.isPending;
+    const isRemoving = removeMediaMutation.isPending;
+    if (isUploading || isRemoving) return;
+
+    if (uploadedPublicId) {
+      removeMediaMutation.mutate(uploadedPublicId, {
+        onSuccess: () => resetPhotoToOriginal(),
+      });
+    } else if (photoPreview === originalPhotoUrl && originalPhotoUrl) {
+      setPhotoPreview("");
+      setValue("photo", "REMOVE");
+    } else {
+      setPhotoPreview("");
+      setValue("photo", "");
     }
   };
 
-  const onSubmit = async (data: UpdateUserAddressFormData) => {
+  const onSubmit = (data: UpdateUserAddressFormData) => {
+    if (!userAddressId) return;
+
+    const payload: Record<string, unknown> = {};
+
+    if (data.address?.trim()) payload.address = data.address.trim();
+    if (data.tag?.trim()) payload.tag = data.tag.trim();
+    if (data.label?.trim()) payload.label = data.label.trim();
+
+    if (uploadedPhotoUrl) {
+      payload.photo = uploadedPhotoUrl;
+    } else if (data.photo === "REMOVE") {
+      payload.photo = null;
+    }
+    // else: tidak ada perubahan foto, field photo tidak dikirim sama sekali
+
     updateUserAddressMutation.mutate(
-      {
-        id: userAddressId,
-        data: {
-          address: data.address,
-          tag: data.tag,
-          label: data.label,
-          photo: data.photo,
-        },
-      },
-      {
-        onSuccess: () => navigate("/user-addresses"),
-      },
+      { id: userAddressId, data: payload },
+      { onSuccess: () => navigate("/user-addresses") },
     );
   };
+
+  const isUploading = uploadMediaMutation.isPending;
+  const isRemoving = removeMediaMutation.isPending;
+  const isSaveDisabled =
+    updateUserAddressMutation.isPending || isUploading || isRemoving;
 
   if (fetchLoading) {
     return (
@@ -177,7 +242,7 @@ export default function EditUserAddressPage() {
       <div className="rounded-xl bg-white p-6 shadow-sm border">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left side - Form Fields */}
+            {/* Left: Form Fields */}
             <div className="flex flex-col justify-center space-y-6">
               <div className="space-y-2">
                 <Label
@@ -239,11 +304,13 @@ export default function EditUserAddressPage() {
                 )}
               </div>
 
+              <input type="hidden" {...register("photo")} />
+
               <div className="pt-4">
                 <Button
                   variant="darkGreen"
                   type="submit"
-                  disabled={updateUserAddressMutation.isPending}
+                  disabled={isSaveDisabled}
                   className="w-full"
                 >
                   {updateUserAddressMutation.isPending
@@ -253,7 +320,7 @@ export default function EditUserAddressPage() {
               </div>
             </div>
 
-            {/* Right side - Image Preview */}
+            {/* Right: Gambar Patokan */}
             <div className="flex flex-col justify-center space-y-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">
@@ -264,18 +331,29 @@ export default function EditUserAddressPage() {
                   <div className="relative">
                     <img
                       src={photoPreview}
-                      alt="Address preview"
+                      alt="Pratinjau patokan alamat"
                       className="w-full h-64 object-cover rounded-lg border"
                     />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
-                      onClick={removePhoto}
-                    >
-                      ×
-                    </Button>
+                    {isUploading && (
+                      <div className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center">
+                        <p className="text-white text-sm font-medium">
+                          Mengunggah...
+                        </p>
+                      </div>
+                    )}
+                    {!isUploading && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
+                        onClick={handleRemovePhoto}
+                        disabled={isRemoving}
+                        aria-label="Hapus gambar"
+                      >
+                        ×
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center h-64 flex flex-col justify-center">
@@ -292,20 +370,28 @@ export default function EditUserAddressPage() {
                   </div>
                 )}
 
-                <Input
+                <input
                   type="file"
                   ref={fileInputRef}
                   accept="image/*"
                   onChange={handlePhotoSelect}
                   className="hidden"
                 />
+
                 <Button
                   type="button"
                   variant="outline"
+                  disabled={isUploading || isRemoving}
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full"
                 >
-                  {photoPreview ? "Ganti Gambar" : "Pilih Gambar"}
+                  {isUploading
+                    ? "Mengunggah..."
+                    : isRemoving
+                      ? "Menghapus..."
+                      : photoPreview
+                        ? "Ganti Gambar"
+                        : "Pilih Gambar"}
                 </Button>
               </div>
             </div>

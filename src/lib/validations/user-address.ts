@@ -1,32 +1,37 @@
 import { z } from "zod";
 
-// Validation schema for user address form
-export const userAddressSchema = z.object({
+export const createUserAddressSchema = z.object({
   address: z
     .string()
-    .min(1, "Alamat adalah wajib")
     .min(3, "Alamat minimal 3 karakter")
     .max(255, "Alamat maksimal 255 karakter"),
+
   tag: z
     .string()
-    .min(1, "Patokan adalah wajib")
-    .max(100, "Patokan maksimal 100 karakter"),
+    .max(100, "Patokan maksimal 100 karakter")
+    .optional(),
   label: z
     .string()
-    .min(1, "Nama alamat adalah wajib")
-    .max(50, "Nama alamat maksimal 50 karakter"),
-});
-
-// Type inference for form data
-export type UserAddressFormData = z.infer<typeof userAddressSchema>;
-
-// Validation schema for create request (includes optional photo)
-export const createUserAddressSchema = userAddressSchema.extend({
+    .max(50, "Nama alamat maksimal 50 karakter")
+    .optional(),
   photo: z.string().optional(),
 });
 
-// Validation schema for update request (includes optional photo)
-export const updateUserAddressSchema = userAddressSchema.extend({
+export const updateUserAddressSchema = z.object({
+  address: z
+    .string()
+    .min(3, "Alamat minimal 3 karakter")
+    .max(255, "Alamat maksimal 255 karakter")
+    .optional(),
+  tag: z
+    .string()
+    .max(100, "Patokan maksimal 100 karakter")
+    .optional(),
+  label: z
+    .string()
+    .max(50, "Nama alamat maksimal 50 karakter")
+    .optional()
+    .or(z.literal("")),
   photo: z.string().optional(),
 });
 

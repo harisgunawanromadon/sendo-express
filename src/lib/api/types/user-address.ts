@@ -1,11 +1,19 @@
 import type { ApiMeta, Pagination } from "./index";
-// User Address related types
 
 export interface CreateUserAddressRequest {
-  address: string;
-  tag: string;
-  label: string;
+  address: string; 
+  tag?: string; 
+  label?: string; 
+  photo?: string; 
+}
+
+export interface UpdateUserAddressRequest {
+  address?: string;
+  tag?: string;
+  label?: string;
   photo?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface UserAddress {
@@ -13,7 +21,7 @@ export interface UserAddress {
   address: string;
   tag: string;
   label: string;
-  photo?: string;
+  photo?: string | null;
   latitude?: number;
   longitude?: number;
 }
@@ -27,15 +35,6 @@ export interface UserAddressResponse {
 export interface SingleUserAddressResponse {
   meta: ApiMeta;
   data: UserAddress;
-}
-
-export interface UpdateUserAddressRequest {
-  address?: string;
-  tag?: string;
-  label?: string;
-  photo?: string;
-  latitude?: number;
-  longitude?: number;
 }
 
 export interface UserAddressDetailResponse {

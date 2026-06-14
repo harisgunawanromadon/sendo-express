@@ -74,7 +74,6 @@ const Index = () => {
   }, [user, resetProfile]);
 
   // Handle avatar upload
-
   const handleAvatarSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -82,12 +81,12 @@ const Index = () => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
+      toast.error("File yang dipilih harus berupa gambar");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size should be less than 5MB");
+      toast.error("Ukuran gambar tidak boleh lebih dari 5MB");
       return;
     }
 
