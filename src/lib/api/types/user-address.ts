@@ -1,10 +1,10 @@
 import type { ApiMeta, Pagination } from "./index";
 
 export interface CreateUserAddressRequest {
-  address: string; 
-  tag?: string; 
-  label?: string; 
-  photo?: string; 
+  address: string;
+  tag?: string;
+  label?: string;
+  photo?: string;
 }
 
 export interface UpdateUserAddressRequest {
@@ -12,8 +12,6 @@ export interface UpdateUserAddressRequest {
   tag?: string;
   label?: string;
   photo?: string;
-  latitude?: number;
-  longitude?: number;
 }
 
 export interface UserAddress {
