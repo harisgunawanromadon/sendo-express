@@ -1,37 +1,30 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-
 import AuthenticatedLayout from "./components/layouts/authenticated-layout";
-
 // Auth Pages
 import LoginPage from "./pages/auth/login";
 import RegisterPage from "./pages/auth/register";
-
 // Main Pages
 import DashboardPage from "./pages/dashboard";
 import ProfilePage from "./pages/profile";
 import BranchPage from "./pages/branch";
 import RolePage from "./pages/role";
 import EmployeePage from "./pages/employee";
-
 // Delivery & Shipping Pages
 import DeliveryPage from "./pages/delivery";
 import SendPackagePage from "./pages/send-package";
 import AddSendPackagePage from "./pages/send-package/add";
 import DetailSendPackagePage from "./pages/send-package/detail";
 import PaySendPackagePage from "./pages/send-package/pay";
-
 // History & Tracking Pages
 import HistoryPage from "./pages/history";
 import DetailHistoryPage from "./pages/history/detail";
 import TrackPackagePage from "./pages/track-package";
 import ShipmentBranchPage from "./pages/shipment-branch";
-
 // User Address Pages
 import UserAddressesPage from "./pages/user-addresses";
 import AddUserAddressPage from "./pages/user-addresses/add";
 import EditUserAddressPage from "./pages/user-addresses/edit";
 import NoAddressPage from "./pages/send-package/no-address";
-
 // Auth Guard
 import { AuthGuard } from "./components/auth-guard";
 
@@ -94,7 +87,10 @@ function App() {
         <Route
           path="/employee"
           element={
-            <AuthGuard requiredAuth={true} roles={["super-admin", "admin-branch"]}>
+            <AuthGuard
+              requiredAuth={true}
+              roles={["super-admin", "admin-branch"]}
+            >
               <EmployeePage />
             </AuthGuard>
           }
@@ -112,7 +108,10 @@ function App() {
         <Route
           path="/delivery"
           element={
-            <AuthGuard requiredAuth={true} roles={["super-admin", "admin-branch", "courier"]}>
+            <AuthGuard
+              requiredAuth={true}
+              roles={["super-admin", "admin-branch", "courier"]}
+            >
               <DeliveryPage />
             </AuthGuard>
           }
@@ -164,7 +163,7 @@ function App() {
         <Route
           path="/history"
           element={
-            <AuthGuard requiredAuth={true}>
+            <AuthGuard requiredAuth={true} role="customer">
               <HistoryPage />
             </AuthGuard>
           }
@@ -172,7 +171,7 @@ function App() {
         <Route
           path="/history/detail/:id"
           element={
-            <AuthGuard requiredAuth={true}>
+            <AuthGuard requiredAuth={true} role="customer">
               <DetailHistoryPage />
             </AuthGuard>
           }
@@ -185,7 +184,10 @@ function App() {
         <Route
           path="/shipment-branch"
           element={
-            <AuthGuard requiredAuth={true} roles={["admin-branch", "courier"]}>
+            <AuthGuard
+              requiredAuth={true}
+              roles={["admin-branch", "super-admin"]}
+            >
               <ShipmentBranchPage />
             </AuthGuard>
           }
