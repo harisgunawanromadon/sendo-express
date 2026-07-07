@@ -42,7 +42,7 @@ export type {
   DeliveryStatus,
   DeliveryType,
   Shipment,
-  GetAllShipmentsParams,
+  ShipmentsParams,
   TrackingShipmentRequest,
   CreateShipmentResponse,
   GetAllShipmentsResponse,

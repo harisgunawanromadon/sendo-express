@@ -24,6 +24,7 @@ import { useMeta, META_DATA } from "@/hooks/use-meta";
 import { Textarea } from "@/components/ui/textarea";
 import { useUserAddress, useUpdateUserAddress } from "@/hooks/use-user-address";
 import { useUploadMedia, useRemoveMedia } from "@/hooks/use-media";
+import type { UpdateUserAddressRequest } from "@/lib/api/types/user-address";
 
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
@@ -168,15 +169,15 @@ export default function EditUserAddressPage() {
   };
 
   const onSubmit = (data: UpdateUserAddressFormData) => {
-    if (!userAddressId) return;
-    const payload: Record<string, unknown> = {};
-    if (data.address?.trim()) payload.address = data.address.trim();
-    if (data.tag?.trim()) payload.tag = data.tag.trim();
-    if (data.label?.trim()) payload.label = data.label.trim();
-    // Foto: kirim hanya jika berubah dari original (termasuk dikosongkan)
-    if (data.photo !== originalPhotoUrl) {
-      payload.photo = data.photo ?? "";
-    }
+    if (!userAddressId || !userAddress) return;
+
+    const payload: UpdateUserAddressRequest = {
+      address: data.address?.trim() || userAddress.address,
+      tag: data.tag?.trim() || undefined,
+      label: data.label?.trim() || undefined,
+      photo: data.photo !== originalPhotoUrl ? (data.photo ?? "") : undefined,
+    };
+
     updateUserAddressMutation.mutate(
       { id: userAddressId, data: payload },
       { onSuccess: () => navigate("/user-addresses") },

@@ -16,7 +16,7 @@ import { PermissionGuard } from "@/components";
 import { PaginationControl } from "@/components/ui/pagination-control";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useSearchParams } from "react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { EmployeeBranchFilters } from "@/lib/api/types/employee";
 import { Loader2 } from "lucide-react";
 
@@ -34,20 +34,31 @@ const FILTER_OPTIONS: { value: FilterField; label: string }[] = [
 export default function EmployeePage() {
   useMeta(META_DATA.employee);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [filterField, setFilterField] = useState<FilterField>(
-    (searchParams.get("filter") as FilterField) ?? "name",
-  );
+
+  const detectFilterField = (): FilterField => {
+    const found = FILTER_OPTIONS.find((opt) => searchParams.has(opt.value));
+    return found?.value ?? "name";
+  };
+
+  const [filterField, setFilterField] =
+    useState<FilterField>(detectFilterField());
   const [inputValue, setInputValue] = useState(
     searchParams.get(filterField) ?? "",
   );
+
   const debouncedSearch = useDebounce(inputValue, 500);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     const currentLimit = searchParams.get("limit") ?? String(DEFAULT_LIMIT);
     const params: Record<string, string> = {
       page: "1",
       limit: currentLimit,
-      filter: filterField,
     };
     if (debouncedSearch) {
       params[filterField] = debouncedSearch;

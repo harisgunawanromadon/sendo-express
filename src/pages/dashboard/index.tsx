@@ -20,7 +20,11 @@ import { toast } from "react-hot-toast";
 const Index = () => {
   useMeta(META_DATA.dashboard);
 
-  const { data: shipments = [], refetch } = useCourierShipments({ limit: 5 });
+  const { data: shipmentsResponse, refetch } = useCourierShipments({
+    limit: 5,
+  });
+
+  const shipments = shipmentsResponse?.data ?? [];
 
   const handleActionComplete = () => {
     refetch();

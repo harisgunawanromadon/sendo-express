@@ -18,8 +18,6 @@ export interface UpdateUserAddressRequest {
   tag?: string;
   label?: string;
   photo?: string;
-  latitude?: number;
-  longitude?: number;
 }
 
 export interface UserAddress {
