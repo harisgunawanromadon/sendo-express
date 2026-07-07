@@ -12,9 +12,11 @@ import {
 import { Input } from "../ui/input";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "../ui/sidebar";
 import { useAuth } from "../../hooks/use-auth";
+import { useNavigate } from "react-router-dom";
 
 export default function AuthenticatedLayout() {
   const { user, logout, isLoggingOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <SidebarProvider>
@@ -40,9 +42,7 @@ export default function AuthenticatedLayout() {
                 >
                   <div className="cursor-pointer flex items-center gap-2 pr-2 sm:pr-4 min-w-0">
                     <img
-                      src={
-                        user?.avatar ? user.avatar : "/images/vespa-tiger.jpg"
-                      }
+                      src={user?.avatar || "/images/vespa-tiger.jpg"}
                       alt="User Avatar"
                       className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0"
                     />
@@ -59,7 +59,9 @@ export default function AuthenticatedLayout() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    Profile
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={logout} disabled={isLoggingOut}>
                     {isLoggingOut ? "Logging out..." : "Logout"}
                   </DropdownMenuItem>
