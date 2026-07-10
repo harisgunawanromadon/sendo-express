@@ -38,7 +38,7 @@ export const columns: ColumnDef<History>[] = [
     },
   },
   {
-    accessorKey: "deliveryStatus",
+    accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as DeliveryStatus;

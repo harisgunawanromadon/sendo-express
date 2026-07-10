@@ -170,7 +170,7 @@ const DetailHistoryPage = () => {
                   <div>
                     <h3 className="text-sm text-secondary">Jenis Pengiriman</h3>
                     <p className="font-semibold capitalize">
-                      {shipment.deliveryType ?? "Reguler"}
+                      {shipment.deliveryType}
                     </p>
                   </div>
                 </div>
