@@ -3,7 +3,6 @@ import { DataTable } from "./components/datatable";
 import { createColumns } from "./components/datatable/columns";
 import { Input } from "@/components/ui/input";
 import { useRoles } from "@/hooks/use-role";
-import { PermissionGuard } from "@/components";
 import { useMeta, META_DATA } from "@/hooks/use-meta";
 import { useSearchParams } from "react-router-dom";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -68,9 +67,9 @@ export default function RolePage() {
           <p className="text-sm">Memuat data role...</p>
         </div>
       ) : (
-        <PermissionGuard permission="permissions.read">
+        <>
           <DataTable data={roles ?? []} columns={columns} title="Daftar Role" />
-        </PermissionGuard>
+        </>
       )}
     </Page>
   );

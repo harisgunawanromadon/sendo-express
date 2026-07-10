@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { useMeta, META_DATA } from "@/hooks/use-meta";
 import { useEmployees } from "@/hooks/use-employee";
-import { PermissionGuard } from "@/components";
 import { PaginationControl } from "@/components/ui/pagination-control";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useSearchParams } from "react-router";
@@ -150,7 +149,7 @@ export default function EmployeePage() {
           <p className="text-sm">Memuat data karyawan...</p>
         </div>
       ) : (
-        <PermissionGuard permission="employee.read">
+        <>
           <DataTable
             data={data?.data ?? []}
             columns={columns()}
@@ -162,7 +161,7 @@ export default function EmployeePage() {
               onPageChange={handlePageChange}
             />
           )}
-        </PermissionGuard>
+        </>
       )}
     </Page>
   );
