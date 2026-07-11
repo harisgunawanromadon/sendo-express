@@ -28,12 +28,12 @@ export const useCourierShipments = (filters?: CourierShipmentParams) => {
 };
 
 // get one courier shipment
-export const useCourierShipment = (trackingNumber: string) => {
+export const useCourierShipment = (trackingNumber: string, enabled = true) => {
   return useQuery({
     queryKey: courierShipmentKeys.detail(trackingNumber),
     queryFn: () => courierShipmentService.getOneCourierShipment(trackingNumber),
-    enabled: !!trackingNumber,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!trackingNumber && enabled,
+    staleTime: 5 * 60 * 1000,
   });
 };
 

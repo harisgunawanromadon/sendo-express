@@ -95,7 +95,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Tidak ada data yang ditemukan.
+                  Tidak ada data pengiriman yang ditemukan.
                 </TableCell>
               </TableRow>
             )}

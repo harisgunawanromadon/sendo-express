@@ -10,6 +10,7 @@ import type {
   CourierShipmentActionResponse,
   PickUpShipmentRequest,
   DeliverToCustomerRequest,
+  DeliverToCustomerResponse,
 } from "@/lib/api/types/delivery";
 
 // Find All Shipments Courier
@@ -125,13 +126,13 @@ export const courierShipmentService = {
   async deliverToCustomer(
     trackingNumber: string,
     data: DeliverToCustomerRequest,
-  ): Promise<CourierShipmentActionResult> {
+  ): Promise<DeliverToCustomerResponse> {
     try {
-      const response = await apiClient.patch<CourierShipmentActionResponse>(
+      const response = await apiClient.patch<DeliverToCustomerResponse>(
         `/api/shipments/courier/deliver-to-customer/${trackingNumber}`,
         data,
       );
-      return response.data.data;
+      return response.data;
     } catch (error) {
       const errorMessage = handleAxiosError(error as AxiosErrorType);
       throw new Error(errorMessage);
