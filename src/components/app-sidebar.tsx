@@ -60,7 +60,12 @@ const data = {
           role: "customer",
         },
         { title: "Profile", url: "/profile", icon: User },
-        { title: "Lacak Paket", url: "/track-package", icon: Routing },
+        {
+          title: "Lacak Paket",
+          url: "/track-package",
+          icon: Routing,
+          role: "customer",
+        },
         {
           title: "Daftar Pengiriman",
           url: "/delivery",

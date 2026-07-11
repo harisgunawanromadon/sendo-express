@@ -61,6 +61,7 @@ function App() {
         }
       >
         <Route path="/dashboard" element={<DashboardPage />} />
+
         <Route path="/profile" element={<ProfilePage />} />
 
         {/* Branch Management */}
@@ -121,7 +122,7 @@ function App() {
         <Route
           path="/send-package"
           element={
-            <AuthGuard requiredAuth={true}>
+            <AuthGuard requiredAuth={true} role="customer">
               <SendPackagePage />
             </AuthGuard>
           }
@@ -129,7 +130,7 @@ function App() {
         <Route
           path="/send-package/no-address"
           element={
-            <AuthGuard requiredAuth={true}>
+            <AuthGuard requiredAuth={true} role="customer">
               <NoAddressPage />
             </AuthGuard>
           }
@@ -137,7 +138,7 @@ function App() {
         <Route
           path="/send-package/add"
           element={
-            <AuthGuard requiredAuth={true}>
+            <AuthGuard requiredAuth={true} role="customer">
               <AddSendPackagePage />
             </AuthGuard>
           }
@@ -145,7 +146,7 @@ function App() {
         <Route
           path="/send-package/detail/:id"
           element={
-            <AuthGuard requiredAuth={true}>
+            <AuthGuard requiredAuth={true} role="customer">
               <DetailSendPackagePage />
             </AuthGuard>
           }
@@ -153,12 +154,13 @@ function App() {
         <Route
           path="/send-package/pay/:id"
           element={
-            <AuthGuard requiredAuth={true}>
+            <AuthGuard requiredAuth={true} role="customer">
               <PaySendPackagePage />
             </AuthGuard>
           }
         />
 
+        {/* History */}
         <Route
           path="/history"
           element={
@@ -170,14 +172,21 @@ function App() {
         <Route
           path="/history/detail/:id"
           element={
-            <AuthGuard requiredAuth={true}>
+            <AuthGuard requiredAuth={true} role="customer">
               <DetailHistoryPage />
             </AuthGuard>
           }
         />
 
         {/* Package Tracking */}
-        <Route path="/track-package" element={<TrackPackagePage />} />
+        <Route
+          path="/track-package"
+          element={
+            <AuthGuard requiredAuth={true} role="customer">
+              <TrackPackagePage />
+            </AuthGuard>
+          }
+        />
 
         {/* Shipment Branch */}
         <Route
